@@ -1,10 +1,22 @@
+# Environment
 .venv/
 .env
 .env.aws
+
+# ML artifacts
+mlruns/
+*.pkl
+*.joblib
+.mlflow
+
+# Large datasets
+data/raw/
+data/processed/
+# Notebook checkpoints
+.ipynb_checkpoints/
+
 __pycache__/
 *.pyc
-.env
 .DS_Store
-.mlflow/
 artifacts/
 logs/
