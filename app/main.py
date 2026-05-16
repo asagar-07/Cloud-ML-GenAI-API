@@ -7,6 +7,8 @@ from app.core.config import get_settings
 from app.core.logging import logger
 from app.core.exceptions import (AppException, app_exception_handler, generic_exception_handler)
 
+from app.api.routes import genai
+
 
 settings = get_settings()
 
@@ -54,6 +56,8 @@ app = FastAPI(title=settings.app_name, version=settings.app_version, lifespan=li
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
+# Register API routes
+app.include_router(genai.router)
 
 @app.get("/")
 async def root():
