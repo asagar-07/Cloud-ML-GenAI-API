@@ -46,6 +46,7 @@ class BedrockService:
 
             return {
                 "success": True,
+                "status": "COMPLETED",
                 "provider": self.provider,
                 "model_id": self.model_id,
                 "response": output_text,
@@ -53,15 +54,41 @@ class BedrockService:
             }
 
         except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
+            error_message = e.response.get("Error", {}).get("Message", str(e))
+
+            if error_code in ["ThrottlingException", "TooManyRequestsException"]:
+                logger.warning(
+                    "Bedrock throttled | provider=%s | model_id=%s | error_code=%s",
+                    self.provider,
+                    self.model_id,
+                    error_code,
+                )
+
+                return {
+                    "success": False,
+                    "status": "THROTTLED",
+                    "provider": self.provider,
+                    "model_id": self.model_id,
+                    "error_code": error_code,
+                    "error": error_message,
+                    "response": None,
+                    "latency_seconds": None,
+                }
+
             logger.exception("AWS Bedrock ClientError")
+
             return {
                 "success": False,
+                "status": "FAILED",
                 "provider": self.provider,
                 "model_id": self.model_id,
-                "error": str(e),
+                "error_code": error_code,
+                "error": error_message,
                 "response": None,
                 "latency_seconds": None,
             }
+        
         
         except Exception as e:
             logger.exception("Unexpected Bedrock invocation error")

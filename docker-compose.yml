@@ -4,6 +4,9 @@ services:
     container_name: cloud-ml-genai-api
     ports:
       - "8000:8000"
+    env_file:
+      - .env
+      - .env.aws
     volumes:
       - .:/app
       - ${HOME}/.aws:/root/.aws

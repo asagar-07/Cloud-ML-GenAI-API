@@ -7,7 +7,9 @@ from app.core.config import get_settings
 from app.core.logging import logger
 from app.core.exceptions import (AppException, app_exception_handler, generic_exception_handler)
 
-from app.api.routes import genai
+from app.api.routes.genai import router as genai_router
+from app.api.routes.predict import router as predict_router
+from app.api.routes.jobs import router as jobs_router
 
 
 settings = get_settings()
@@ -57,7 +59,16 @@ app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
 # Register API routes
-app.include_router(genai.router)
+app.include_router(genai_router)
+
+# Note: The predict router is intentionally registered after the genai router to ensure that 
+# the /predict/async endpoint is available for testing and does not conflict with any potential /genai endpoints. 
+# This ordering allows for clear separation of concerns and avoids any unintended route overlaps.
+app.include_router(predict_router)
+
+# Register the Jobs router
+app.include_router(jobs_router)
+
 
 @app.get("/")
 async def root():
