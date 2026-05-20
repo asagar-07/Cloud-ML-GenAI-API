@@ -19,7 +19,7 @@ services:
       - .env.aws
     volumes:
       - .:/app
-      - ~/.aws:/root/.aws:ro
+      - ~/.aws:/root/.aws
     command: python -m workers.sqs_worker
     depends_on:
       - api

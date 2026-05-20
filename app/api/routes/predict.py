@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException
 
 from app.schemas.prediction import PredictionRequest
-from app.services.job_store import create_job
+from app.services.job_store import create_job, get_job
 from app.services.sqs_producer import SQSProducer
+from app.services.s3_service import get_job_from_s3
 
 
 router = APIRouter(prefix="/predict", tags=["Prediction"])
@@ -27,3 +28,17 @@ async def predict_async(request: PredictionRequest):
 
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to queue inference request: {str(exc)}", )
+    
+
+@router.get("/status/{request_id}")
+async def get_status(request_id: str):
+    # Retrieve from S3 log if not found in job store
+    job = get_job_from_s3(request_id)
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found from S3 logs. It may still be queued for processing or the request ID is invalid.")
+    return {
+        "request_id": request_id,
+        "status": job.get("status", "COMPLETED"),
+        "result": job,
+    }
