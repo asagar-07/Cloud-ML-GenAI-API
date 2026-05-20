@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     ecs_container_port: int
     mlflow_tracking_uri: str
 
+    # SQS
+    sqs_queue_name: str | None = None
+    sqs_queue_url: str | None = None
+    sqs_dlq_name: str | None = None
+    sqs_dlq_url: str | None = None
+
 
     # Bedrock
     bedrock_model_provider: str 

@@ -11,3 +11,15 @@ services:
       - .:/app
       - ${HOME}/.aws:/root/.aws
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build: .
+    container_name: cloud-ml-genai-worker
+    env_file:
+      - .env.aws
+    volumes:
+      - .:/app
+      - ~/.aws:/root/.aws:ro
+    command: python -m workers.sqs_worker
+    depends_on:
+      - api
