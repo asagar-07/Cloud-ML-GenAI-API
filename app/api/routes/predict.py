@@ -36,9 +36,16 @@ async def get_status(request_id: str):
     job = get_job_from_s3(request_id)
 
     if not job:
-        raise HTTPException(status_code=404, detail="Job not found from S3 logs. It may still be queued for processing or the request ID is invalid.")
+        return {
+            "request_id": request_id,
+            "status": "PENDING",
+            "message": "Job has been accepted but result is not available yet. May be queued or processing. Please check back later.",
+            "result": None,
+        }
+
     return {
         "request_id": request_id,
         "status": job.get("status", "COMPLETED"),
+        "message": "Job completed successfully.",
         "result": job,
     }
