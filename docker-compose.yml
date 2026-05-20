@@ -23,3 +23,4 @@ services:
     command: python -m workers.sqs_worker
     depends_on:
       - api
+    restart: unless-stopped
