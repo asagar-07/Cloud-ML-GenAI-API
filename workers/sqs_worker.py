@@ -2,6 +2,7 @@ import json
 import logging
 import time
 from typing import Any, Dict
+import os
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
@@ -62,6 +63,19 @@ class SQSWorker:
         return response.get("Messages", [])
 
     def process_message(self, message: Dict[str, Any]) -> None:
+        # This is to force worker failure for testing DLQ functionality. Set environment variable FORCE_WORKER_FAILURE=true to enable.
+        logger.info("Worker received message")
+
+        force_failure = os.getenv("FORCE_WORKER_FAILURE", "false").lower() == "true"
+        logger.info("FORCE_WORKER_FAILURE=%s", force_failure)
+
+        if force_failure:
+            error_message = "Forced worker failure for DLQ testing"
+            fail_job(request_id, error_message)
+            logger.error(error_message)
+            raise RuntimeError(error_message)
+
+        # existing processing code will not be executed when failure is forced
         receipt_handle = message["ReceiptHandle"]
         body = json.loads(message["Body"])
 
@@ -84,22 +98,17 @@ class SQSWorker:
 
             llm_prompt = f"""
             You are an ML fraud detection assistant.
-
             Explain the fraud prediction result below in simple business terms.
-
             Input transaction data:
             {json.dumps(payload, indent=2)}
-
             Model prediction result:
             {json.dumps(prediction_result, indent=2)}
-
             Provide:
             1. Final prediction
             2. Fraud probability
             3. Key risk interpretation
             4. Short explanation for a non-technical user
             """
-
             bedrock_response = self.bedrock_service.generate_response(llm_prompt)
 
             final_result = {

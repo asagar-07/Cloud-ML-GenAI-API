@@ -1,0 +1,35 @@
+{
+  "family": "<worker-task-family-name>",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "<executionRoleArn>",
+  "taskRoleArn": "<taskRoleArn>",
+  "containerDefinitions": [
+    {
+      "name": "<worker-container-name>",
+      "image": "<image-uri>",
+      "essential": true,
+      "command": [ "python", "-m", "workers.sqs_worker" ],
+      "environment": [
+        { "name": "APP_ENV", "value": "<app-env>" },
+        { "name": "AWS_REGION", "value": "<aws-region>" },
+        { "name": "ENABLE_FILE_LOGGING", "value": "False" },
+
+        { "name": "SQS_QUEUE_URL", "value": "<sqs-queue-url>" },
+        { "name": "S3_BUCKET", "value": "<s3-bucket-name>" },
+        { "name": "BEDROCK_MODEL_PROVIDER", "value": "<bedrock-model-provider>" },
+        { "name": "BEDROCK_MODEL_ID", "value": "<bedrock-model-id>" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "</log-group-name>",
+          "awslogs-region": "<aws-region>",
+          "awslogs-stream-prefix": "worker"
+        }
+      }
+    }
+  ]
+}

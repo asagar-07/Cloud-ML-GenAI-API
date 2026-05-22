@@ -1,0 +1,36 @@
+{
+  "family": "<task-family-name>",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "<executionRoleArn>",
+  "taskRoleArn": "<taskRoleArn>",
+  "containerDefinitions": [
+    {
+      "name": "<container-name>",
+      "image": "<image-uri>",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "command": ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"],
+      "environment": [
+        { "name": "APP_ENV", "value": "<app-env>" },
+        { "name": "AWS_REGION", "value": "<aws-region>" },
+        { "name": "ENABLE_FILE_LOGGING", "value": "False" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "</log-group-name>",
+          "awslogs-region": "<aws-region>",
+          "awslogs-stream-prefix": "api"
+        }
+      }
+    }
+  ]
+}

@@ -12,8 +12,13 @@ mlruns/
 # Large datasets
 data/raw/
 data/processed/
+
 # Notebook checkpoints
 .ipynb_checkpoints/
+
+# Real ECS task definitions
+api-task-definition.json
+worker-task-definition.json
 
 __pycache__/
 *.pyc
