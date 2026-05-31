@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     sqs_dlq_name: str | None = None
     sqs_dlq_url: str | None = None
 
+    # SageMaker
+    use_sagemaker_endpoint: bool = False
+    sagemaker_endpoint_name: str = ""
+    sagemaker_content_type: str = "application/json"
 
     # Bedrock
     bedrock_model_provider: str 

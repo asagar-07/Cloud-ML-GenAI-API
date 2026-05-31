@@ -11,6 +11,7 @@ from app.core.config import get_settings
 from app.core.logging import logger
 from app.services.job_store import update_job_status, complete_job, fail_job
 from app.services.prediction_service import predict_fraud
+from app.services.sagemaker_predict import predict_with_sagemaker
 from app.services.s3_service import log_inference
 from app.services.bedrock_service import BedrockService
 
@@ -93,8 +94,10 @@ class SQSWorker:
 
         try:
             update_job_status(request_id, "PROCESSING")
-
-            prediction_result = predict_fraud(payload)
+            if settings.use_sagemaker_endpoint:
+                prediction_result = predict_with_sagemaker(payload)
+            else:
+                prediction_result = predict_fraud(payload)
 
             llm_prompt = f"""
             You are an ML fraud detection assistant.
