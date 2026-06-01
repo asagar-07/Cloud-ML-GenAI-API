@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   ci-cd:
-    name: CI + Build + Push to ECR
+    name: CI + Build + Push to ECR + Deploy to ECS (API + Worker)
     runs-on: ubuntu-latest
 
     steps:
@@ -91,5 +91,31 @@ jobs:
         with:
           task-definition: ${{ steps.render-api-task.outputs.task-definition }}
           service: ${{ vars.ECS_API_SERVICE }}
+          cluster: ${{ vars.ECS_CLUSTER }}
+          wait-for-service-stability: true
+      
+      - name: Download current Worker task definition
+        if: github.event_name == 'push'
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ vars.ECS_WORKER_TASK_FAMILY }} \
+            --query taskDefinition \
+            > worker-task-definition.json
+
+      - name: Render new Worker task definition
+        if: github.event_name == 'push'
+        id: render-worker-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: worker-task-definition.json
+          container-name: ${{ vars.ECS_WORKER_CONTAINER }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPO }}:${{ github.sha }}
+
+      - name: Deploy Worker task definition to ECS
+        if: github.event_name == 'push'
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-worker-task.outputs.task-definition }}
+          service: ${{ vars.ECS_WORKER_SERVICE }}
           cluster: ${{ vars.ECS_CLUSTER }}
           wait-for-service-stability: true
