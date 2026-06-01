@@ -67,3 +67,29 @@ jobs:
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPO }}:latest
             ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPO }}:${{ github.sha }}
+
+      - name: Download current API task definition
+        if: github.event_name == 'push'
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ vars.ECS_API_TASK_FAMILY }} \
+            --query taskDefinition \
+            > api-task-definition.json
+
+      - name: Render new API task definition
+        if: github.event_name == 'push'
+        id: render-api-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: api-task-definition.json
+          container-name: ${{ vars.ECS_API_CONTAINER }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPO }}:${{ github.sha }}
+
+      - name: Deploy API task definition to ECS
+        if: github.event_name == 'push'
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-api-task.outputs.task-definition }}
+          service: ${{ vars.ECS_API_SERVICE }}
+          cluster: ${{ vars.ECS_CLUSTER }}
+          wait-for-service-stability: true
