@@ -2,69 +2,24 @@
 
 # Overview
 
-End-to-end cloud-native machine learning platform that trains a fraud detection model on AWS SageMaker and tracks model via MLflow, deploys it using containerized microservices on AWS ECS, processes requests asynchronously using Amazon SQS, enriches predictions with Amazon Bedrock LLM explanations, and manages infrastructure through Terraform and GitHub Actions CI/CD.
+End-to-end cloud-native machine learning platform that trains a fraud detection model on AWS SageMaker and tracks model via MLflow, deploys it using containerized microservices on AWS ECS, processes requests asynchronously using Amazon SQS, enriches predictions with Amazon Bedrock LLM explanations, and manages infrastructure through Terraform and GitHub Actions CI/CD. 
+Model training and artifact management were validated using SageMaker and S3.
+A SageMaker real-time endpoint was deployed and tested, then removed after validation to minimize AWS costs.
 
 # Architecture
 
 ![Architecture](docs/architecture.png)
 
-                                    +------------------+
-                                    |     GitHub       |
-                                    |   Source Code    |
-                                    +--------+---------+
-                                             |
-                                             v
-                                    +------------------+
-                                    | GitHub Actions   |
-                                    |    CI / CD       |
-                                    +--------+---------+
-                                             |
-                                             v
-                                    +------------------+
-                                    |       ECR        |
-                                    | Container Images |
-                                    +--------+---------+
-                                             |
-                                             v
-     ------------------------------------------------------------------
-                            AWS ECS Fargate Cluster
-     ------------------------------------------------------------------
-         +--------------------+           +--------------------+
-         |    API Service     |           |   Worker Service   |
-         |      FastAPI       |           |    SQS Consumer    |
-         +---------+----------+           +----------+---------+
-                   |                                 |
-                   | POST /predict                   |
-                   |                                 |
-                   v                                 |
-         +--------------------+                      |
-         |    Amazon SQS      |<---------------------+
-         |   Request Queue    |
-         +---------+----------+
-                   |
-                   v
-         +--------------------+
-         | Fraud Inference    |
-         | Random Forest ML   |
-         +---------+----------+
-                   |
-        +----------+-----------+
-        |                      |
-        v                      v
-    +------------------+   +----------------------+
-    | Amazon Bedrock   |   | Amazon S3            |
-    | LLM Explanation  |   | Inference Logs       |
-    +------------------+   | Audit Trail          |
-                        | Job Status Files     |
-                        +----------+-----------+
-                                    |
-                                    v
-                            +------------------+
-                            |  /status API     |
-                            | Reads Results    |
-                            +------------------+
+## Architecture Highlights
 
-
+- FastAPI API service running on ECS Fargate
+- Asynchronous processing through Amazon SQS
+- Worker-based inference architecture
+- Random Forest fraud prediction model
+- Amazon Bedrock LLM explanation generation
+- S3-based audit logging and status persistence
+- Infrastructure provisioned using Terraform
+- CI/CD automated with GitHub Actions
 
 # Infrastructure Layer
     +--------------------------------------------------------------+
@@ -88,6 +43,7 @@ End-to-end cloud-native machine learning platform that trains a fraud detection 
                                             v
                                     SageMaker
                                 (Training Workflow)
+
 
 
 # Tech Stack
@@ -146,6 +102,19 @@ terraform apply
 git push
 ```
 
+## Model Performance
+
+| Metric | Value |
+|----------|----------|
+| Accuracy | 99.97% |
+| Precision | 100.00% |
+| Recall | 74.55% |
+| F1 Score | 85.42% |
+| ROC-AUC | 97.52% |
+
+Best model: Random Forest Classifier
+
+
 ## Additional Documentation
 
 | Document | Purpose |
@@ -158,20 +127,20 @@ git push
 | docs/add_reliability_monitoring.md | DLQ, monitoring, alarms, and operational hardening |
 
 
-# ECS Deployment
+## Deployment Evidence
 ![ECS Services](docs/screenshots/1.ECS-Cluster.png)
 
-# Swagger
+## Swagger
 ![Swagger](docs/screenshots/Swagger%20endpoint.png)
 ![Swagger](docs/screenshots/:predict%20part%201.png)
 ![Swagger](docs/screenshots/:predict%20part%202.png)
 
-# Completed Inference
-![Inference](docs/screenshots/:status:{request_id}%20part%201.png)
-![Inference](docs/screenshots/:status:{request_id}%20part%202.png)
+## API Validation
+![Swagger Inference](docs/screenshots/:status:{request_id}%20part%201.png)
+![Swagger Inference](docs/screenshots/:status:{request_id}%20part%202.png)
 
-# GitHub Actions
+## CI/CD Pipeline
 ![Actions](docs/screenshots/Screenshot%2011%20-%20GitHub%20Actions.png)
 
-# Terraform
+## Infrastructure as Code
 ![Terraform](docs/screenshots/Terraform%20apply.png)
